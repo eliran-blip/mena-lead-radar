@@ -304,22 +304,29 @@ def write_to_sheets(leads):
                 l["contact_email"], l["notes"]
             ])
 
-        # Write to sheet named by today's date
-        tab_name = f"סריקה {TODAY}"
+        # Write to first sheet (Sheet1 / גיליון1)
         try:
             sheet.values().update(
                 spreadsheetId=SHEET_ID,
-                range=f"'{tab_name}'!A1",
+                range="A1",
                 valueInputOption="RAW",
                 body={"values": rows}
             ).execute()
         except Exception:
-            sheet.values().update(
-                spreadsheetId=SHEET_ID,
-                range="Sheet1!A1",
-                valueInputOption="RAW",
-                body={"values": rows}
-            ).execute()
+            try:
+                sheet.values().update(
+                    spreadsheetId=SHEET_ID,
+                    range="Sheet1!A1",
+                    valueInputOption="RAW",
+                    body={"values": rows}
+                ).execute()
+            except Exception:
+                sheet.values().update(
+                    spreadsheetId=SHEET_ID,
+                    range="גיליון1!A1",
+                    valueInputOption="RAW",
+                    body={"values": rows}
+                ).execute()
 
         print(f"[OK] Written {len(leads)} leads to Google Sheet")
 
