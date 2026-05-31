@@ -167,11 +167,11 @@ def score_article(article):
             signal_score += weight
             signals_found.append(signal)
 
-    if signal_score < 10:
+    if signal_score < 5:
         return None
 
     total = min(99, market_score + signal_score)
-    heat = "hot" if total >= 70 else "warm" if total >= 50 else "cold"
+    heat = "hot" if total >= 55 else "warm" if total >= 35 else "cold"
 
     companies = re.findall(r'\b([A-Z][a-zA-Z&]+(?:\s+[A-Z][a-zA-Z&]+){0,3})\b', article["title"])
     company = companies[0] if companies else "Unknown"
