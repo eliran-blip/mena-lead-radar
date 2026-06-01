@@ -177,31 +177,28 @@ def write_to_sheets(leads):
             scopes=["https://www.googleapis.com/auth/spreadsheets"]
         )
         svc = build("sheets", "v4", credentials=creds).spreadsheets()
-        rows = [[
-            "תאריך", "חברה", "סיגנל", "שוק יעד", "מקור", "קישור",
-            "דירוג", "חום", "זרוע", "סיגנלים", "סטטוס",
-            "אושר?", "איש קשר", "תפקיד", "אימייל", "הערות"
-        ]]
+        # Check if header exists
+        try:
+            existing = svc.values().get(spreadsheetId=SHEET_ID, range="A1:A1").execute()
+            has_header = bool(existing.get("values"))
+        except Exception:
+            has_header = False
+
+        rows = []
+        if not has_header:
+            rows.append(["תאריך","חברה","סיגנל","שוק יעד","מקור","קישור","דירוג","חום","זרוע","סיגנלים","סטטוס","אושר?","איש קשר","תפקיד","אימייל","הערות"])
+
         for l in leads:
-            rows.append([
-                l["date"], l["company"], l["signal"], l["market"],
-                l["source"], l["url"], l["score"], l["heat"],
-                l["entry"], l["signals"], l["status"],
-                l["approved"], l["contact_name"], l["contact_role"],
-                l["contact_email"], l["notes"]
-            ])
+            rows.append([l["date"],l["company"],l["signal"],l["market"],l["source"],l["url"],l["score"],l["heat"],l["entry"],l["signals"],l["status"],l["approved"],l["contact_name"],l["contact_role"],l["contact_email"],l["notes"]])
 
         for rng in ["A1", "Sheet1!A1", "גיליון1!A1"]:
             try:
-                svc.values().update(
-                    spreadsheetId=SHEET_ID, range=rng,
-                    valueInputOption="RAW", body={"values": rows}
-                ).execute()
-                print(f"[OK] Written {len(leads)} leads to Google Sheet")
+                svc.values().append(spreadsheetId=SHEET_ID, range=rng, valueInputOption="RAW", insertDataOption="INSERT_ROWS", body={"values": rows}).execute()
+                print(f"[OK] Appended {len(leads)} leads to Google Sheet")
                 return
             except Exception:
                 continue
-        print("[ERROR] Could not write to sheet")
+        print("[ERROR] Could not append to sheet")
 
     except Exception as e:
         print(f"[ERROR] Sheets failed: {e}")
